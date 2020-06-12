@@ -38,7 +38,7 @@ public class OAuth2Wrapper {
         
         if let creds = self.credentials {
             
-            self.logger.debug("Have cache credentials.")
+            self.logger.debug("Have cached credentials.")
             
             if !isExpired(credentials: creds) {
                 completion(.success(creds))
@@ -50,7 +50,7 @@ public class OAuth2Wrapper {
         
         if let data = KeychainWrapper.standard.data(forKey: keychain_label) {
             
-            self.logger.debug("Have stored credentials.")
+            self.logger.debug("Have stored credentials with ID \(keychain_label).")
             
             let decoder = JSONDecoder()
             var creds: OAuthSwiftCredential
@@ -90,7 +90,7 @@ public class OAuth2Wrapper {
                     completion(.failure(error))
                 }
                 
-                self.logger.debug("Stored new access token.")
+                self.logger.debug("Stored new credentials with ID \(keychain_label).")
                 
                 self.credentials = credentials
                 completion(.success(credentials))
