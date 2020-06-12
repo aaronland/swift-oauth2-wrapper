@@ -1,9 +1,10 @@
+import Foundation
 import OAuthSwift
 
 class OAuth2Wrapper {
 
     var callback_url: String
-    var keychain_label: String
+    var id: String
     
     var response_type = "token"
     var allow_missing_state = false
@@ -12,14 +13,14 @@ class OAuth2Wrapper {
     private var oauth2: OAuthSwift?
     private var credentials: OAuthSwiftCredential?
     
-    init() {
-        
-        
+    init(id:String, callback_url: String) {
+        self.id = id
+        self.callback_url = callback_url        
     }
     
      public func GetAccessToken(completion: @escaping (OAuthSwiftCredential) -> ()){
          
-        let keychain_label = self.keychain_label
+        let keychain_label = self.id
          
          if let creds = self.credentials {
                          

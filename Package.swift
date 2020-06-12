@@ -21,7 +21,7 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "OAuth2Wrapper",
-            dependencies: []),
+            dependencies: [ "OAuthSwift"]),
         .testTarget(
             name: "OAuth2WrapperTests",
             dependencies: ["OAuth2Wrapper"]),
