@@ -1,3 +1,3 @@
-# OAuth2Wrapper
+# swift-oauth2-wrapper
 
 A description of this package.
