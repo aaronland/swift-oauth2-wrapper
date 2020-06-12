@@ -1,7 +1,7 @@
 import Foundation
 import OAuthSwift
 
-enum Errors: Error {
+public enum OAuth2WrapperErrors: Error {
     case missingOAuth2AuthURL
     case missingOAuth2TokenURL
     case missingOAuth2ClientID
@@ -9,7 +9,7 @@ enum Errors: Error {
     case missingOAuth2Scope
 }
 
-class OAuth2Wrapper {
+public class OAuth2Wrapper {
     
     var callback_url: String
     var id: String
@@ -92,30 +92,30 @@ class OAuth2Wrapper {
         let oauth2_scope = Bundle.main.object(forInfoDictionaryKey: "OAuth2Scope") as? String
         
         if oauth2_auth_url == nil || oauth2_auth_url == "" {
-            completion(.failure(Errors.missingOAuth2AuthURL))
+            completion(.failure(OAuth2WrapperErrors.missingOAuth2AuthURL))
             return
         }
         
         if oauth2_token_url == nil || oauth2_token_url == "" {
-            completion(.failure(Errors.missingOAuth2TokenURL))
+            completion(.failure(OAuth2WrapperErrors.missingOAuth2TokenURL))
             return
         }
         
         if oauth2_client_id == nil || oauth2_client_id == "" {
-            completion(.failure(Errors.missingOAuth2ClientID))
+            completion(.failure(OAuth2WrapperErrors.missingOAuth2ClientID))
             return
         }
         
         if oauth2_client_secret == nil || oauth2_client_secret == "" {
             
             if self.require_client_secret {
-                completion(.failure(Errors.missingOAuth2ClientSecret))
+                completion(.failure(OAuth2WrapperErrors.missingOAuth2ClientSecret))
                 return
             }
         }
         
         if oauth2_scope == nil || oauth2_scope == "" {
-            completion(.failure(Errors.missingOAuth2Scope))
+            completion(.failure(OAuth2WrapperErrors.missingOAuth2Scope))
             return
         }
         
