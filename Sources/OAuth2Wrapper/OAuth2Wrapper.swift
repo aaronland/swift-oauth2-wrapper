@@ -22,7 +22,7 @@ public class OAuth2Wrapper {
     private var oauth2: OAuthSwift?
     private var credentials: OAuthSwiftCredential?
     
-    init(id:String, callback_url: String) {
+    public init(id:String, callback_url: String) {
         self.id = id
         self.callback_url = callback_url        
     }
