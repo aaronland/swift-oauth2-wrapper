@@ -1,4 +1,5 @@
 import Foundation
+import Logging
 import OAuthSwift
 
 public enum OAuth2WrapperErrors: Error {
@@ -22,6 +23,7 @@ public class OAuth2Wrapper {
     public var require_client_secret = true
     public var allow_null_expires = false
     
+    public var logger = Logger(label: "info.aaronland.swift-oauth2-wrapper")
     
     public init(id:String, callback_url: String) {
         self.id = id
@@ -30,17 +32,25 @@ public class OAuth2Wrapper {
     
     public func GetAccessToken(completion: @escaping (Result<OAuthSwiftCredential, Error>) -> ()){
         
+        self.logger.debug("Get access token")
+        
         let keychain_label = self.id
         
         if let creds = self.credentials {
+            
+            self.logger.debug("Have cache credentials.")
             
             if !isExpired(credentials: creds) {
                 completion(.success(creds))
                 return
             }
+            
+            self.logger.debug("Cache credentials are expired.")
         }
         
         if let data = KeychainWrapper.standard.data(forKey: keychain_label) {
+            
+            self.logger.debug("Have stored credentials.")
             
             let decoder = JSONDecoder()
             var creds: OAuthSwiftCredential
@@ -48,6 +58,7 @@ public class OAuth2Wrapper {
             do {
                 creds = try decoder.decode(OAuthSwiftCredential.self, from: data)
             } catch(let error) {
+                self.logger.error("Store crendentials could not be decoded, \(error).")
                 completion(.failure(error))
                 return
             }
@@ -56,23 +67,30 @@ public class OAuth2Wrapper {
                 completion(.success(creds))
                 return
             }
+            
+            self.logger.debug("Stored credentials are expired.")
         }
         
         func getStore(rsp: Result<OAuthSwiftCredential, Error>) {
             
             switch rsp {
             case .failure(let error):
+                self.logger.error("Failed to generate new access token, \(error).")
                 return completion(.failure(error))
             case .success(let credentials):
                 
+                self.logger.debug("Generated new access token.")
                 let encoder = JSONEncoder()
                 
                 do {
                     let data = try encoder.encode(credentials)
                     KeychainWrapper.standard.set(data, forKey: keychain_label)
                 } catch (let error) {
+                    self.logger.error("Failed to store new access token, \(error).")
                     completion(.failure(error))
                 }
+                
+                self.logger.debug("Stored new access token.")
                 
                 self.credentials = credentials
                 completion(.success(credentials))
@@ -83,9 +101,7 @@ public class OAuth2Wrapper {
     }
     
     public func GetNewAccessToken(completion: @escaping (Result<OAuthSwiftCredential,Error>) -> ()){
-        
-        print("GET NEW ACCESS TOKEN")
-        
+                
         let oauth2_auth_url = Bundle.main.object(forInfoDictionaryKey: "OAuth2AuthURL") as? String
         let oauth2_token_url = Bundle.main.object(forInfoDictionaryKey: "OAuth2TokenURL") as? String
         let oauth2_client_id = Bundle.main.object(forInfoDictionaryKey: "OAuth2ClientID") as? String
@@ -134,6 +150,8 @@ public class OAuth2Wrapper {
         
         // make sure we retain the oauth2 instance (I always forget this part...)
         self.oauth2 = oauth2
+        
+        self.logger.debug("Dispatch OAuth2 authorization request.")
         
         oauth2.authorize(
             withCallbackURL: self.callback_url,
