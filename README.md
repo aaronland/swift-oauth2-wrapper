@@ -1,3 +1,8 @@
 # swift-oauth2-wrapper
 
-A description of this package.
+Work in progress. Documentation to follow.
+
+## See also
+
+* https://github.com/jrendel/SwiftKeychainWrapper
+* https://github.com/OAuthSwift/OAuthSwift
