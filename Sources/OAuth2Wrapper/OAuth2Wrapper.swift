@@ -10,17 +10,18 @@ public enum OAuth2WrapperErrors: Error {
 }
 
 public class OAuth2Wrapper {
-    
-    var callback_url: String
-    var id: String
-    
-    var response_type = "token"
-    var allow_missing_state = false
-    var require_client_secret = true
-    var allow_null_expires = false
-    
+   
     private var oauth2: OAuthSwift?
     private var credentials: OAuthSwiftCredential?
+    
+    private var callback_url: String
+    private var id: String
+    
+    public var response_type = "token"
+    public var allow_missing_state = false
+    public var require_client_secret = true
+    public var allow_null_expires = false
+    
     
     public init(id:String, callback_url: String) {
         self.id = id
