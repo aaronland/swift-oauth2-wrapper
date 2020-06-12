@@ -303,9 +303,7 @@ open class KeychainWrapper {
     /// - returns: True if the save was successful, false otherwise.
     @discardableResult open func set(_ value: Data, forKey key: String, withAccessibility accessibility: KeychainItemAccessibility? = nil) -> Bool {
         var keychainQueryDictionary: [String:Any] = setupKeychainQueryDictionary(forKey: key, withAccessibility: accessibility)
-     
-        print("SET KEYCHAIN WITH KEY:", key)
-        
+             
         keychainQueryDictionary[SecValueData] = value
         
         if let accessibility = accessibility {
@@ -316,9 +314,7 @@ open class KeychainWrapper {
         }
         
         let status: OSStatus = SecItemAdd(keychainQueryDictionary as CFDictionary, nil)
-        
-        print("ADD ITEM:", status)
-        
+                
         if status == errSecSuccess {
             return true
         } else if status == errSecDuplicateItem {

@@ -8,6 +8,7 @@ public enum OAuth2WrapperErrors: Error {
     case missingOAuth2ClientID
     case missingOAuth2ClientSecret
     case missingOAuth2Scope
+    case keychainError
 }
 
 public class OAuth2Wrapper {
@@ -22,6 +23,7 @@ public class OAuth2Wrapper {
     public var allow_missing_state = false
     public var require_client_secret = true
     public var allow_null_expires = false
+    public var add_to_keychain = true
     
     public var logger = Logger(label: "info.aaronland.swift-oauth2-wrapper")
     
@@ -46,6 +48,11 @@ public class OAuth2Wrapper {
             }
             
             self.logger.debug("Cache credentials are expired.")
+        }
+        
+        if !self.add_to_keychain {
+            self.GetNewAccessToken(completion: completion)
+            return
         }
         
         if let data = KeychainWrapper.standard.data(forKey: keychain_label) {
@@ -82,12 +89,21 @@ public class OAuth2Wrapper {
                 self.logger.debug("Generated new access token.")
                 let encoder = JSONEncoder()
                 
+                var data: Data?
+                
                 do {
-                    let data = try encoder.encode(credentials)
-                    KeychainWrapper.standard.set(data, forKey: keychain_label)
+                    data = try encoder.encode(credentials)
                 } catch (let error) {
                     self.logger.error("Failed to store new access token, \(error).")
                     completion(.failure(error))
+                }
+                
+                let ok = KeychainWrapper.standard.set(data!, forKey: keychain_label)
+
+                if !ok {
+                    self.logger.error("Failed to store new credentials.")
+                    completion(.failure(OAuth2WrapperErrors.keychainError))
+                    return
                 }
                 
                 self.logger.debug("Stored new credentials with ID \(keychain_label).")
