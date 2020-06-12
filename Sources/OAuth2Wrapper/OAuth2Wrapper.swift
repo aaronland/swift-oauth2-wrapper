@@ -25,7 +25,7 @@ public class OAuth2Wrapper {
     public var allow_null_expires = false
     public var add_to_keychain = true
     
-    public var logger = Logger(label: "info.aaronland.swift-oauth2-wrapper")
+    public var logger = Logger(label: "aaronland.swift-oauth2-wrapper")
     
     public init(id:String, callback_url: String) {
         self.id = id
