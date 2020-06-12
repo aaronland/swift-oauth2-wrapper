@@ -65,7 +65,7 @@ public class OAuth2Wrapper {
             do {
                 creds = try decoder.decode(OAuthSwiftCredential.self, from: data)
             } catch(let error) {
-                self.logger.error("Store crendentials could not be decoded, \(error).")
+                self.logger.error("Store credentials could not be decoded, \(error).")
                 completion(.failure(error))
                 return
             }
