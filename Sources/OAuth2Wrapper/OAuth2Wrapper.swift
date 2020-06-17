@@ -2,19 +2,12 @@ import Foundation
 import Logging
 import OAuthSwift
 
-public enum OAuth2WrapperErrors: Error {
-    case missingOAuth2AuthURL
-    case missingOAuth2TokenURL
-    case missingOAuth2ClientID
-    case missingOAuth2ClientSecret
-    case missingOAuth2Scope
-    case keychainError
-}
-
 public class OAuth2Wrapper {
    
     private var oauth2: OAuthSwift?
     private var credentials: OAuthSwiftCredential?
+    
+    private var config: OAuth2WrapperConfig?
     
     private var callback_url: String
     private var id: String
@@ -27,9 +20,9 @@ public class OAuth2Wrapper {
     
     public var logger = Logger(label: "aaronland.swift-oauth2-wrapper")
     
-    public init(id:String, callback_url: String) {
+    public init(id:String, config: OAuth2WrapperConfig) {
         self.id = id
-        self.callback_url = callback_url        
+        self.config! = config
     }
     
     public func GetAccessToken(completion: @escaping (Result<OAuthSwiftCredential, Error>) -> ()){
@@ -117,48 +110,14 @@ public class OAuth2Wrapper {
     }
     
     public func GetNewAccessToken(completion: @escaping (Result<OAuthSwiftCredential,Error>) -> ()){
-                
-        let oauth2_auth_url = Bundle.main.object(forInfoDictionaryKey: "OAuth2AuthURL") as? String
-        let oauth2_token_url = Bundle.main.object(forInfoDictionaryKey: "OAuth2TokenURL") as? String
-        let oauth2_client_id = Bundle.main.object(forInfoDictionaryKey: "OAuth2ClientID") as? String
-        let oauth2_client_secret = Bundle.main.object(forInfoDictionaryKey: "OAuth2ClientSecret") as? String
-        let oauth2_scope = Bundle.main.object(forInfoDictionaryKey: "OAuth2Scope") as? String
-        
-        if oauth2_auth_url == nil || oauth2_auth_url == "" {
-            completion(.failure(OAuth2WrapperErrors.missingOAuth2AuthURL))
-            return
-        }
-        
-        if oauth2_token_url == nil || oauth2_token_url == "" {
-            completion(.failure(OAuth2WrapperErrors.missingOAuth2TokenURL))
-            return
-        }
-        
-        if oauth2_client_id == nil || oauth2_client_id == "" {
-            completion(.failure(OAuth2WrapperErrors.missingOAuth2ClientID))
-            return
-        }
-        
-        if oauth2_client_secret == nil || oauth2_client_secret == "" {
-            
-            if self.require_client_secret {
-                completion(.failure(OAuth2WrapperErrors.missingOAuth2ClientSecret))
-                return
-            }
-        }
-        
-        if oauth2_scope == nil || oauth2_scope == "" {
-            completion(.failure(OAuth2WrapperErrors.missingOAuth2Scope))
-            return
-        }
         
         let oauth2_state = UUID().uuidString
         
         let oauth2 = OAuth2Swift(
-            consumerKey:    oauth2_client_id!,
-            consumerSecret: oauth2_client_secret!,
-            authorizeUrl:   oauth2_auth_url!,
-            accessTokenUrl: oauth2_token_url!,
+            consumerKey:    self.config!.ClientID,
+            consumerSecret: self.config!.ClientSecret,
+            authorizeUrl:   self.config?.AuthURL,
+            accessTokenUrl: self.config?.TokenURL,
             responseType:   self.response_type
         )
         
@@ -170,8 +129,8 @@ public class OAuth2Wrapper {
         self.logger.debug("Dispatch OAuth2 authorization request.")
         
         oauth2.authorize(
-            withCallbackURL: self.callback_url,
-            scope: oauth2_scope!,
+            withCallbackURL: self.config?.CallbackURL,
+            scope: self.config?.Scope,
             state:oauth2_state
         ) { result in
             switch result {
