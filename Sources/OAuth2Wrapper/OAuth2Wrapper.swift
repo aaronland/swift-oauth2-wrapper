@@ -7,29 +7,19 @@ public class OAuth2Wrapper {
     private var oauth2: OAuthSwift?
     private var credentials: OAuthSwiftCredential?
     
-    private var config: OAuth2WrapperConfig?
-    
-    private var callback_url: String
-    private var id: String
-    
-    public var response_type = "token"
-    public var allow_missing_state = false
-    public var require_client_secret = true
-    public var allow_null_expires = false
-    public var add_to_keychain = true
+    private var config: OAuth2WrapperConfig
     
     public var logger = Logger(label: "aaronland.swift-oauth2-wrapper")
     
-    public init(id:String, config: OAuth2WrapperConfig) {
-        self.id = id
-        self.config! = config
+    public init(config: OAuth2WrapperConfig) {
+        self.config = config
     }
     
     public func GetAccessToken(completion: @escaping (Result<OAuthSwiftCredential, Error>) -> ()){
         
         self.logger.debug("Get access token")
         
-        let keychain_label = self.id
+        let keychain_label = self.config.KeychainLabel
         
         if let creds = self.credentials {
             
@@ -43,7 +33,7 @@ public class OAuth2Wrapper {
             self.logger.debug("Cache credentials are expired.")
         }
         
-        if !self.add_to_keychain {
+        if !self.config.AddToKeychain {
             self.GetNewAccessToken(completion: completion)
             return
         }
@@ -114,14 +104,14 @@ public class OAuth2Wrapper {
         let oauth2_state = UUID().uuidString
         
         let oauth2 = OAuth2Swift(
-            consumerKey:    self.config!.ClientID,
-            consumerSecret: self.config!.ClientSecret,
-            authorizeUrl:   self.config?.AuthURL,
-            accessTokenUrl: self.config?.TokenURL,
-            responseType:   self.response_type
+            consumerKey:    self.config.ClientID,
+            consumerSecret: self.config.ClientSecret,
+            authorizeUrl:   self.config.AuthURL,
+            accessTokenUrl: self.config.TokenURL,
+            responseType:   self.config.ResponseType
         )
         
-        oauth2.allowMissingStateCheck = self.allow_missing_state
+        oauth2.allowMissingStateCheck = self.config.AllowMissingState
         
         // make sure we retain the oauth2 instance (I always forget this part...)
         self.oauth2 = oauth2
@@ -129,8 +119,8 @@ public class OAuth2Wrapper {
         self.logger.debug("Dispatch OAuth2 authorization request.")
         
         oauth2.authorize(
-            withCallbackURL: self.config?.CallbackURL,
-            scope: self.config?.Scope,
+            withCallbackURL: self.config.CallbackURL,
+            scope: self.config.Scope,
             state:oauth2_state
         ) { result in
             switch result {
@@ -150,7 +140,7 @@ public class OAuth2Wrapper {
         
         var is_expired = credentials.isTokenExpired()
         
-        if is_expired && self.allow_null_expires {
+        if is_expired && self.config.AllowNullExpires {
             
             let dt = credentials.oauthTokenExpiresAt!
             

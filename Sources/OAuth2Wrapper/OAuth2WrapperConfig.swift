@@ -1,20 +1,19 @@
-//
-//  File.swift
-//  
-//
-//  Created by asc on 6/17/20.
-//
-
 import Foundation
 
 public struct OAuth2WrapperConfig {
     
     public var AuthURL: String
     public var TokenURL: String
+    public var CallbackURL: String
     public var ClientID: String
     public var ClientSecret: String
     public var Scope: String
-    public var CallbackURL: String
+    
+    public var ResponseType = "token"
+    public var AllowMissingState = false
+    public var AllowNullExpires = false
+    public var AddToKeychain = true
+    public var KeychainLabel: String
 }
 
 public func NewOAuth2WrapperConfigFromBundle(bundle: Bundle, prefix: String?) -> Result<OAuth2WrapperConfig, Error> {
@@ -30,40 +29,55 @@ public func NewOAuth2WrapperConfigFromBundle(bundle: Bundle, prefix: String?) ->
     let key_client_id = String(format: "%@ClientID", with_prefix)
     let key_client_secret = String(format: "%@ClientSecret", with_prefix)
     let key_scope = String(format: "%@Scope", with_prefix)
+    let key_callback_url = String(format: "%@CallbackURL", with_prefix)
+    let key_keychain_label = String(format: "%@KeychainLabel", with_prefix)
     
-    let oauth2_auth_url = bundle.object(forInfoDictionaryKey: key_auth_url) as? String
-    let oauth2_token_url = bundle.object(forInfoDictionaryKey: key_token_url) as? String
-    let oauth2_client_id = bundle.object(forInfoDictionaryKey: key_client_id) as? String
-    var oauth2_client_secret = bundle.object(forInfoDictionaryKey: key_client_secret) as? String
-    let oauth2_scope = bundle.object(forInfoDictionaryKey: key_scope) as? String
-    
-    if oauth2_auth_url == nil || oauth2_auth_url == "" {
+    let auth_url = bundle.object(forInfoDictionaryKey: key_auth_url) as? String
+    let token_url = bundle.object(forInfoDictionaryKey: key_token_url) as? String
+    let callback_url = bundle.object(forInfoDictionaryKey: key_callback_url) as? String
+
+    let client_id = bundle.object(forInfoDictionaryKey: key_client_id) as? String
+    var client_secret = bundle.object(forInfoDictionaryKey: key_client_secret) as? String
+    let scope = bundle.object(forInfoDictionaryKey: key_scope) as? String
+
+    let keychain_label = bundle.object(forInfoDictionaryKey: key_keychain_label) as? String
+
+    if auth_url == nil || auth_url == "" {
         return .failure(OAuth2WrapperErrors.missingOAuth2AuthURL)
     }
     
-    if oauth2_token_url == nil || oauth2_token_url == "" {
+    if token_url == nil || token_url == "" {
         return .failure(OAuth2WrapperErrors.missingOAuth2TokenURL)
     }
     
-    if oauth2_client_id == nil || oauth2_client_id == "" {
+    if callback_url == nil || callback_url == "" {
+        return .failure(OAuth2WrapperErrors.missingOAuth2CallbackURL)
+    }
+    
+    if client_id == nil || client_id == "" {
         return .failure(OAuth2WrapperErrors.missingOAuth2ClientID)
     }
     
-    if oauth2_client_secret == nil || oauth2_client_secret == "" {
-        oauth2_client_secret = ""
+    if client_secret == nil || client_secret == "" {
+        client_secret = ""
     }
     
-    if oauth2_scope == nil || oauth2_scope == "" {
+    if scope == nil || scope == "" {
         return .failure(OAuth2WrapperErrors.missingOAuth2Scope)
+    }
+
+    if keychain_label == nil || keychain_label == "" {
+        return .failure(OAuth2WrapperErrors.missingKeychainLabel)
     }
     
     let cfg = OAuth2WrapperConfig(
-        AuthURL: oauth2_auth_url!,
-        TokenURL: oauth2_token_url!,
-        ClientID: oauth2_client_id!,
-        ClientSecret: oauth2_client_secret!,
-        Scope: oauth2_scope!,
-        CallbackURL: "fixme"
+        AuthURL: auth_url!,
+        TokenURL: token_url!,
+        CallbackURL: callback_url!,
+        ClientID: client_id!,
+        ClientSecret: client_secret!,
+        Scope: scope!,
+        KeychainLabel: keychain_label!
     )
     
     return .success(cfg)
