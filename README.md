@@ -9,16 +9,22 @@ Work in progress. Proper documentation to follow, specifically about how to conf
 ## Example
 
 ```
+import Foundation
 import OAuth2Wrapper
 import OAuthSwift
 
 func DoAuth() {
 
-    let oauth2_id = "myapp://access_token"
-    let oauth2_callback_url = "myapp://oauth2"
-
-    let wrapper = OAuth2Wrapper(id: oauth2_id, callback_url: oauth2_callback_url)
-    wrapper.GetAccessToken(completion: GotAuth)
+    let result = NewOAuth2WrapperConfigFromBundle(bundle: Bundle.main, prefix: "MyApp")
+        
+    switch result {
+    case .failure(let error):
+        print(error)
+        return
+    case .success(let config):
+        let wrapper = OAuth2Wrapper(config: config)
+        wrapper.GetAccessToken(completion: GotAuth)
+    }
 }
 
 func GotAuth(result: Result<OAuthSwiftCredential, Error>){
